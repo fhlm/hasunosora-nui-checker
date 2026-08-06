@@ -178,7 +178,17 @@
     border-left: 1px solid var(--divider);
     background: #fffafb;
   }
-  .rc-label { font-size: 11px; font-weight: 700; color: var(--cherry-dark); margin-bottom: 5px; }
+  .rc-label { font-size: 11px; font-weight: 700; color: var(--cherry-dark); }
+  .rc-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 5px; gap: 8px;
+  }
+  .rc-all {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10.5px; color: var(--accent); cursor: pointer;
+    user-select: none; white-space: nowrap; flex-shrink: 0;
+  }
+  .rc-all input { accent-color: var(--accent); width: 13px; height: 13px; margin: 0; }
   .rc-ver {
     font-size: 11px; font-weight: 700;
     color: var(--cherry-dark);
@@ -419,6 +429,8 @@ const I18N = {
     allRole: '全部角色',
     price: '价格', size: '尺寸', launch: '发售/登场', reserve: '预约',
     checkedLabel: '💗 已收集角色（{c}/{t}）',
+    selectAll: '全选',
+    selectAllDone: '✅ 已全选该行角色', unselectAllDone: '已取消该行全选',
     off: '🔗 官网新闻详情',
     noRoles: '该系列暂无角色勾选',
     empty: '没有符合条件的商品，换个筛选条件试试～',
@@ -444,6 +456,8 @@ const I18N = {
     allRole: '全キャラ',
     price: '価格', size: 'サイズ', launch: '発売/登場', reserve: '予約',
     checkedLabel: '💗 収集済みキャラ（{c}/{t}）',
+    selectAll: '全選択',
+    selectAllDone: '✅ この行のキャラを全て選択しました', unselectAllDone: 'この行の全選択を解除しました',
     off: '🔗 公式ニュース詳細',
     noRoles: 'このシリーズにチェック対象のキャラはいません',
     empty: '該当する商品がありません',
@@ -580,7 +594,7 @@ function itemRowHtml(grp) {
       <a class="row-link" href="${it.url}" target="_blank">${T('off')}</a>
     </div>
     <div class="row-check">
-      <div class="rc-label">${rowTotal ? T('checkedLabel').replace('{c}', rowChecked).replace('{t}', rowTotal) : ''}</div>
+      ${rowTotal ? `<div class="rc-head"><div class="rc-label">${T('checkedLabel').replace('{c}', rowChecked).replace('{t}', rowTotal)}</div><label class="rc-all" title="${T('selectAll')}"><input type="checkbox" class="rc-all-box" data-series="${it.series.replace(/"/g, '&quot;')}" data-ver="${ver.replace(/"/g, '&quot;')}"><span>${T('selectAll')}</span></label></div>` : ''}
       ${rowTotal ? `<div class="rc-grid">${rowRoles.map(r => roleCheckHtml(it.series, ver, r)).join('')}</div>` : `<div class="rc-empty">${T('noRoles')}</div>`}
     </div>
   </div>`;
@@ -717,6 +731,18 @@ document.addEventListener('keydown', e => {
 
 $('#item-list').addEventListener('change', e => {
   const cb = e.target;
+  // 全选：勾选/取消该行全部角色
+  if (cb.classList.contains('rc-all-box')) {
+    const row = cb.closest('.item-row');
+    const on = cb.checked;
+    row.querySelectorAll('.rc-grid input[type="checkbox"]').forEach(rb => {
+      if (rb.checked !== on) setChecked(rb.dataset.series, rb.dataset.ver, rb.dataset.role, on);
+    });
+    render();
+    updateStats();
+    toast(on ? T('selectAllDone') : T('unselectAllDone'));
+    return;
+  }
   if (!cb.matches('input[type="checkbox"]')) return;
   const series = cb.dataset.series;
   const ver = cb.dataset.ver;
