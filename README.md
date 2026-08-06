@@ -16,19 +16,13 @@
 - 📱 手机端 H5 适配
 - 💾 进度保存在本地浏览器（localStorage）
 
+## 文件说明
+
+- `index.html`：单文件页面（数据内嵌，无外部依赖）
+- `thumbs/`：商品缩略图（webp）
+
 ## 数据来源
 
 [Love Live! 莲之空女学院 公式官网 GOODS](https://www.lovelive-anime.jp/hasunosora/goods/)（截至 2026-08-06）
 
 本页面为非官方粉丝工具 · 仅供个人学习参考 · 商品信息以官网为准 · 版权归各权利方所有
-
-## 构建
-
-```bash
-# 修改 build.py 数据 / template.html 模板后重建
-python build.py
-```
-
-- `index.html`：构建产物（数据内嵌，无外部依赖）
-- `template.html`：页面模板（含 `__DATA__` 占位符）
-- `thumbs/`：商品缩略图（webp）
