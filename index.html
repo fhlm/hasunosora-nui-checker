@@ -541,9 +541,9 @@ function itemRowHtml(grp) {
   const rowRoles = grp.chars || [];
   const rowChecked = rowRoles.filter(r => getChecked(it.series, ver, r)).length;
   const rowTotal = rowRoles.length;
-  // 标题：款式名 + 版本后缀（仅该系列存在版本区分时标注）
+  // 标题：完全按官网日文原名（不翻译）+ 版本后缀（仅该系列存在版本区分时标注）
   const verSuffix = sd.versions.length > 1 ? '（' + ver + '）' : '';
-  const main = (lang === 'ja' ? (grp.nameJa || it.nameJa) : (grp.nameZh || it.nameZh)) + verSuffix;
+  const main = (grp.nameJa || it.nameJa) + verSuffix;
   const info1 = [it.series, it.type]
     .concat(it.price ? [T('price') + ' ' + it.price] : [])
     .concat(it.size ? [T('size') + ' ' + it.size] : [])
@@ -552,7 +552,8 @@ function itemRowHtml(grp) {
   const info2 = [launchRange ? '📅 ' + T('launch') + '：' + launchRange : '']
     .concat(it.reserve && it.reserve !== '—' ? ['⏰ ' + T('reserve') + '：' + it.reserve] : [])
     .filter(Boolean).join('　');
-  const cover = `<div class="row-cover" data-img="${it.img}" data-name="${(grp.nameZh || it.nameZh).replace(/"/g, '&quot;')}" title="${grp.nameZh || it.nameZh}"><img loading="lazy" src="${it.img}" alt="${grp.nameZh || it.nameZh}"></div>`;
+  const coverName = grp.nameJa || it.nameJa;
+  const cover = `<div class="row-cover" data-img="${it.img}" data-name="${coverName.replace(/"/g, '&quot;')}" title="${coverName}"><img loading="lazy" src="${it.img}" alt="${coverName}"></div>`;
   return `
   <div class="item-row" data-series="${it.series.replace(/"/g, '&quot;')}">
     ${cover}
