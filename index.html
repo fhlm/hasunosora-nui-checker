@@ -543,10 +543,13 @@ function roleCheckHtml(series, ver, role) {
 function itemRowHtml(grp) {
   const it = grp.items[0];
   const ver = grp.version || '通常版';
+  const sd = seriesOf[grp.series];
   const rowRoles = grp.chars || [];
   const rowChecked = rowRoles.filter(r => getChecked(it.series, ver, r)).length;
   const rowTotal = rowRoles.length;
-  const main = lang === 'ja' ? (grp.nameJa || it.nameJa) : (grp.nameZh || it.nameZh);
+  // 标题：款式名 + 版本后缀（仅该系列存在版本区分时标注）
+  const verSuffix = sd.versions.length > 1 ? '（' + ver + '）' : '';
+  const main = (lang === 'ja' ? (grp.nameJa || it.nameJa) : (grp.nameZh || it.nameZh)) + verSuffix;
   const info1 = [it.series, it.type]
     .concat(it.price ? [T('price') + ' ' + it.price] : [])
     .concat(it.size ? [T('size') + ' ' + it.size] : [])
