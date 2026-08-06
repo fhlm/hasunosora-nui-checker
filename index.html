@@ -278,9 +278,20 @@
 
   .footer {
     text-align: center; color: var(--text-secondary); font-size: 11px;
-    padding: 30px 16px 10px; line-height: 1.9;
+    padding: 26px 16px 12px; line-height: 1.8;
   }
-  .footer a { color: var(--accent); text-decoration: none; }
+  .footer .f-brand {
+    font-size: 13.5px; font-weight: 700; color: var(--cherry-dark);
+    margin-bottom: 4px; letter-spacing: .4px;
+  }
+  .footer .f-info { font-size: 11px; }
+  .footer .f-info a { color: var(--accent); text-decoration: none; }
+  .footer .f-ack {
+    margin-top: 10px; padding-top: 8px;
+    border-top: 1px dashed var(--divider);
+    font-size: 10px; opacity: .85;
+  }
+  .footer .f-copy { margin-top: 6px; font-size: 9.5px; opacity: .7; }
 
   .toast {
     position: fixed; left: 50%; bottom: 30px; transform: translateX(-50%) translateY(20px);
@@ -375,10 +386,13 @@
   </div>
 
   <div class="footer">
-    <div id="footer-src"></div>
-    <div id="footer-auth"></div>
-    <div id="footer-ack"></div>
-    <div id="footer-copy"></div>
+    <div class="f-brand" id="footer-brand"></div>
+    <div class="f-info">
+      <div id="footer-src"></div>
+      <div id="footer-author"></div>
+    </div>
+    <div class="f-ack" id="footer-ack"></div>
+    <div class="f-copy" id="footer-copy"></div>
   </div>
 
   <div class="toast" id="toast"></div>
@@ -412,8 +426,9 @@ const I18N = {
     resetConfirm: '确定清空所有收集进度吗？此操作不可恢复。',
     cleared: '已清空进度',
     imgDone: '🖼️ 图片已生成',
-    footerSrc: '数据来源：Love Live! 莲之空女学院 公式官网 GOODS（截至 2026-08-06 共 20 篇ぬいぐるみ相关新闻）',
-    footerAuth: '🪷 莲之空女学院学园偶像俱乐部 非官方粉丝站 · 作者：绯幻乱漫 QQ: 908283643 · X: @FeiHuanLuanMan',
+    footerBrand: '🪷 莲之空女学院学园偶像俱乐部 · 非官方粉丝站',
+    footerSrc: '数据来源：Love Live! 莲之空女学院 公式官网 GOODS（截至 2026-08-06 · 已收录 20 篇ぬいぐるみ相关新闻）',
+    footerAuthor: '作者：绯幻乱漫（<a href="https://x.com/FeiHuanLuanMan" target="_blank" rel="noopener">X: @FeiHuanLuanMan</a> · QQ: 908283643）',
     footerAck: '本页面由 AI 自动生成 · 数据来源于公式官网等公开网站 · 可能存在错误或遗漏 · 仅供个人学习参考 · 不得用于商业用途 · 侵权请联系删除',
     footerCopy: '© プロジェクトラブライブ！蓮ノ空女学院スクールアイドルクラブ · 图片版权归各权利方所有',
   },
@@ -436,9 +451,10 @@ const I18N = {
     resetConfirm: '収集進捗を全てリセットしますか？この操作は取り消せません。',
     cleared: '進捗をリセットしました',
     imgDone: '🖼️ 画像を生成しました',
+    footerBrand: '🪷 蓮ノ空女学院スクールアイドルクラブ · 非公式ファンサイト',
     footerSrc: 'データ提供：Love Live! 蓮ノ空女学院 公式サイト GOODS（2026年8月6日現在・ぬいぐるみ関連ニュース20件）',
-    footerAuth: '🪷 蓮ノ空女学院スクールアイドルクラブ 非公式ファンサイト · 作者：绯幻乱漫 QQ: 908283643 · X: @FeiHuanLuanMan',
-    footerAck: '本ページはAIで自動生成 · データは公式サイト等の公開情報より · 誤りや漏れがある可能性があります · 個人学習用 · 商用利用不可 · 権利侵害時は削除対応',
+    footerAuthor: '作者：绯幻乱漫（<a href="https://x.com/FeiHuanLuanMan" target="_blank" rel="noopener">X: @FeiHuanLuanMan</a> · QQ: 908283643）',
+    footerAck: '本ページはAIで自動生成 · 誤りや漏れの可能性があります · 個人学習用 · 商用利用不可 · 権利侵害時は削除対応',
     footerCopy: '© プロジェクトラブライブ！蓮ノ空女学院スクールアイドルクラブ · 画像の著作権は各権利者に帰属',
   }
 };
@@ -661,10 +677,11 @@ function applyLang() {
   DATA.roles.forEach((r, i) => {
     roleSel.options[i + 1].textContent = lang === 'ja' ? r.ja : r.cn + '（' + r.ja + '）';
   });
+  $('#footer-brand').textContent = T('footerBrand');
   $('#footer-src').innerHTML = T('footerSrc')
     .replace('Love Live! 蓮ノ空女学院 公式サイト GOODS', '<a href="https://www.lovelive-anime.jp/hasunosora/goods/" target="_blank">Love Live! 蓮ノ空女学院 公式サイト GOODS</a>')
     .replace('Love Live! 莲之空女学院 公式官网 GOODS', '<a href="https://www.lovelive-anime.jp/hasunosora/goods/" target="_blank">Love Live! 莲之空女学院 公式官网 GOODS</a>');
-  $('#footer-auth').textContent = T('footerAuth');
+  $('#footer-author').innerHTML = T('footerAuthor');
   $('#footer-ack').textContent = T('footerAck');
   $('#footer-copy').textContent = T('footerCopy');
   render();
