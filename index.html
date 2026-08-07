@@ -375,7 +375,6 @@
         <option value="asc">📅 发售时间 早→晚</option>
         <option value="desc">📅 发售时间 晚→早</option>
       </select>
-      <button class="btn primary" id="btn-image">🖼️ 生成图片</button>
       <button class="btn danger" id="btn-reset">🗑️ 清空</button>
     </div>
 
@@ -428,7 +427,6 @@ const I18N = {
     checked: '✅ 已勾选：{r}', unchecked: '已取消：{r}',
     resetConfirm: '确定清空所有收集进度吗？此操作不可恢复。',
     cleared: '已清空进度',
-    imgDone: '🖼️ 图片已生成',
     footerBrand: '🪷 莲之空女学院学园偶像俱乐部 · 非官方粉丝站',
     footerSrc: '数据来源：Love Live! 莲之空女学院 公式官网 GOODS（截至 2026-08-06 · 已收录 20 篇ぬいぐるみ相关新闻）',
     footerAuthor: '作者：绯幻乱漫（<a href="https://x.com/FeiHuanLuanMan" target="_blank" rel="noopener">X: @FeiHuanLuanMan</a> · QQ: 908283643）',
@@ -456,7 +454,6 @@ const I18N = {
     checked: '✅ チェック済み：{r}', unchecked: 'チェック解除：{r}',
     resetConfirm: '収集進捗を全てリセットしますか？この操作は取り消せません。',
     cleared: '進捗をリセットしました',
-    imgDone: '🖼️ 画像を生成しました',
     footerBrand: '🪷 蓮ノ空女学院スクールアイドルクラブ · 非公式ファンサイト',
     footerSrc: 'データ提供：Love Live! 蓮ノ空女学院 公式サイト GOODS（2026年8月6日現在・ぬいぐるみ関連ニュース20件）',
     footerAuthor: '作者：绯幻乱漫（<a href="https://x.com/FeiHuanLuanMan" target="_blank" rel="noopener">X: @FeiHuanLuanMan</a> · QQ: 908283643）',
@@ -753,68 +750,6 @@ $('#btn-reset').addEventListener('click', () => {
   render();
   updateStats();
   toast(T('cleared'));
-});
-
-$('#btn-image').addEventListener('click', () => {
-  const W = 1000, H = 420;
-  const cv = document.createElement('canvas');
-  cv.width = W; cv.height = H;
-  const ctx = cv.getContext('2d');
-  const grad = ctx.createLinearGradient(0, 0, W, 0);
-  grad.addColorStop(0, '#e8739a'); grad.addColorStop(1, '#f0a0be');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, W, H);
-  ctx.fillStyle = 'rgba(255,255,255,0.92)';
-  ctx.fillRect(0, 100, W, H - 100);
-  ctx.fillStyle = '#fff';
-  ctx.textAlign = 'center';
-  ctx.font = 'bold 34px "PingFang SC","Microsoft YaHei"';
-  ctx.fillText(T('title'), W / 2, 60);
-  ctx.font = '18px sans-serif';
-  ctx.fillText(new Date().toLocaleDateString('zh-CN'), W / 2, 88);
-  let total = 0, checked = 0;
-  const groups = buildGroups();
-  groups.forEach(g => { const rk = rowKeyOf(g); total += g.chars.length; checked += g.chars.filter(r => getChecked(rk, r)).length; });
-  const pct = Math.round(checked / total * 100);
-  ctx.fillStyle = '#2d1b24';
-  ctx.font = 'bold 58px sans-serif';
-  ctx.fillText(pct + '%', W / 2, 195);
-  ctx.font = '15px "PingFang SC","Microsoft YaHei"';
-  ctx.fillStyle = '#6b4d5c';
-  ctx.fillText(T('s_checked') + ' ' + checked + ' / ' + total, W / 2, 220);
-  ctx.fillStyle = '#f5e8ec';
-  ctx.beginPath(); ctx.roundRect ? ctx.roundRect(150, 240, 700, 16, 8) : ctx.rect(150, 240, 700, 16);
-  ctx.fill();
-  ctx.fillStyle = '#e8739a';
-  ctx.beginPath(); ctx.roundRect ? ctx.roundRect(150, 240, 700 * pct / 100, 16, 8) : ctx.rect(150, 240, 700 * pct / 100, 16);
-  ctx.fill();
-  let y = 285;
-  ctx.textAlign = 'left';
-  ctx.font = '13px "PingFang SC","Microsoft YaHei"';
-  const seriesNames = [...new Set(groups.map(g => g.series))];
-  seriesNames.forEach(series => {
-    const gs = groups.filter(g => g.series === series);
-    let n = 0, c = 0;
-    gs.forEach(g => { const rk = rowKeyOf(g); n += g.chars.length; c += g.chars.filter(r => getChecked(rk, r)).length; });
-    if (!n) return;
-    const w = 300 * c / n;
-    ctx.fillStyle = '#6b4d5c';
-    ctx.fillText(series.slice(0, 22) + '  ' + c + '/' + n, 110, y + 9);
-    ctx.fillStyle = '#f5e8ec';
-    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(430, y, 300, 12, 6) : ctx.rect(430, y, 300, 12);
-    ctx.fill();
-    ctx.fillStyle = '#e8739a';
-    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(430, y, w, 12, 6) : ctx.rect(430, y, w, 12);
-    ctx.fill();
-    y += 26;
-  });
-  cv.toBlob(blob => {
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = '莲之空棉花娃娃收集进度_' + new Date().toISOString().slice(0, 10) + '.png';
-    a.click();
-    toast(T('imgDone'));
-  });
 });
 
 /* ========== 初始化 ========== */
