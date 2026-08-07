@@ -301,6 +301,14 @@
   .footer .f-note {
     margin-top: 8px; font-size: 10px; color: var(--accent);
   }
+  .footer .f-stat {
+    margin-top: 8px; font-size: 10.5px; color: var(--text-secondary);
+  }
+  .footer .f-stat #busuanzi_value_site_pv,
+  .footer .f-stat #busuanzi_value_site_uv {
+    font-weight: 700; color: var(--cherry-dark); font-size: 12px; margin: 0 2px;
+  }
+  .footer .f-stat-sep { margin: 0 8px; opacity: .5; }
   .footer .f-ack {
     margin-top: 10px; padding-top: 8px;
     border-top: 1px dashed var(--divider);
@@ -390,6 +398,11 @@
       <div id="footer-src"></div>
       <div id="footer-author"></div>
     </div>
+    <div class="f-stat">
+      <span class="f-stat-label" id="f-stat-pv"></span><span id="busuanzi_value_site_pv">0</span><span class="f-stat-unit" id="f-stat-pv-unit"></span>
+      <span class="f-stat-sep">·</span>
+      <span class="f-stat-label" id="f-stat-uv"></span><span id="busuanzi_value_site_uv">0</span><span class="f-stat-unit" id="f-stat-uv-unit"></span>
+    </div>
     <div class="f-note" id="footer-note"></div>
     <div class="f-ack" id="footer-ack"></div>
     <div class="f-copy" id="footer-copy"></div>
@@ -431,6 +444,7 @@ const I18N = {
     footerSrc: '数据来源：Love Live! 莲之空女学院 公式官网 GOODS（截至 2026-08-06 · 已收录 20 篇ぬいぐるみ相关新闻）',
     footerAuthor: '作者：绯幻乱漫（<a href="https://x.com/FeiHuanLuanMan" target="_blank" rel="noopener">X: @FeiHuanLuanMan</a> · QQ: 908283643）',
     footerNote: '※ 塞拉斯·柳田·莉莉恩菲尔特 在列表中简写为「塞拉斯」',
+    pvSite: '站点访问量', pvUnit: '次', uvSite: '访客', uvUnit: '人',
     footerAck: '本页面由 AI 自动生成 · 数据来源于公式官网等公开网站 · 可能存在错误或遗漏 · 仅供个人学习参考 · 不得用于商业用途 · 侵权请联系删除',
     footerCopy: '© プロジェクトラブライブ！蓮ノ空女学院スクールアイドルクラブ · 图片版权归各权利方所有',
   },
@@ -458,6 +472,7 @@ const I18N = {
     footerSrc: 'データ提供：Love Live! 蓮ノ空女学院 公式サイト GOODS（2026年8月6日現在・ぬいぐるみ関連ニュース20件）',
     footerAuthor: '作者：绯幻乱漫（<a href="https://x.com/FeiHuanLuanMan" target="_blank" rel="noopener">X: @FeiHuanLuanMan</a> · QQ: 908283643）',
     footerNote: '※ セラス柳田リリエンフェルト は一覧では「セラス」と表記しています',
+    pvSite: 'サイト訪問数', pvUnit: '回', uvSite: '訪問者', uvUnit: '人',
     footerAck: '本ページはAIで自動生成 · 誤りや漏れの可能性があります · 個人学習用 · 商用利用不可 · 権利侵害時は削除対応',
     footerCopy: '© プロジェクトラブライブ！蓮ノ空女学院スクールアイドルクラブ · 画像の著作権は各権利者に帰属',
   }
@@ -676,6 +691,10 @@ function applyLang() {
     .replace('Love Live! 莲之空女学院 公式官网 GOODS', '<a href="https://www.lovelive-anime.jp/hasunosora/goods/" target="_blank">Love Live! 莲之空女学院 公式官网 GOODS</a>');
   $('#footer-author').innerHTML = T('footerAuthor');
   $('#footer-note').textContent = T('footerNote');
+  $('#f-stat-pv').textContent = T('pvSite');
+  $('#f-stat-pv-unit').textContent = T('pvUnit');
+  $('#f-stat-uv').textContent = T('uvSite');
+  $('#f-stat-uv-unit').textContent = T('uvUnit');
   $('#footer-ack').textContent = T('footerAck');
   $('#footer-copy').textContent = T('footerCopy');
   render();
@@ -755,5 +774,6 @@ $('#btn-reset').addEventListener('click', () => {
 /* ========== 初始化 ========== */
 applyLang();
 </script>
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 </body>
 </html>
