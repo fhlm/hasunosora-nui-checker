@@ -580,7 +580,7 @@ function itemRowHtml(grp) {
       <a class="row-link" href="${it.url}" target="_blank">${T('off')}</a>
     </div>
     <div class="row-check">
-      ${rowTotal ? `<div class="rc-head"><div class="rc-label">${T('checkedLabel').replace('{c}', rowChecked).replace('{t}', rowTotal)}</div><label class="rc-all" title="${T('selectAll')}"><input type="checkbox" class="rc-all-box" data-series="${it.series.replace(/"/g, '&quot;')}" data-ver="${ver.replace(/"/g, '&quot;')}"><span>${T('selectAll')}</span></label></div>` : ''}
+      ${rowTotal ? `<div class="rc-head"><div class="rc-label">${T('checkedLabel').replace('{c}', rowChecked).replace('{t}', rowTotal)}</div><label class="rc-all" title="${T('selectAll')}"><input type="checkbox" class="rc-all-box" ${rowChecked === rowTotal ? 'checked' : ''} data-series="${it.series.replace(/"/g, '&quot;')}" data-ver="${ver.replace(/"/g, '&quot;')}"><span>${T('selectAll')}</span></label></div>` : ''}
       ${rowTotal ? `<div class="rc-grid">${rowRoles.map(r => roleCheckHtml(it.series, ver, r)).join('')}</div>` : `<div class="rc-empty">${T('noRoles')}</div>`}
     </div>
   </div>`;
