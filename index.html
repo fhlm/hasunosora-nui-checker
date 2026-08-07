@@ -477,21 +477,23 @@ function toast(msg) {
 }
 
 /* ========== 状态（按 系列 × 版本 × 角色 勾选） ========== */
-const LS_KEY = 'hasu-nui-progress-v3';
+const LS_KEY = 'hasu-nui-progress-v4';
 let state = {};
 try { state = JSON.parse(localStorage.getItem(LS_KEY)) || {}; } catch (e) { state = {}; }
 function saveState() { localStorage.setItem(LS_KEY, JSON.stringify(state)); }
-function getChecked(series, ver, role) {
-  return !!(state[series] && state[series][ver] && state[series][ver][role]);
+/* 勾选按"行"独立存储：state[rowKey][role]（rowKey = 系列|版本|款式|发售批次） */
+function getChecked(rowKey, role) {
+  return !!(state[rowKey] && state[rowKey][role]);
 }
-function setChecked(series, ver, role, on) {
-  if (!state[series]) state[series] = {};
-  if (!state[series][ver]) state[series][ver] = {};
-  if (on) state[series][ver][role] = true;
-  else delete state[series][ver][role];
-  if (!Object.keys(state[series][ver]).length) delete state[series][ver];
-  if (!Object.keys(state[series]).length) delete state[series];
+function setChecked(rowKey, role, on) {
+  if (!state[rowKey]) state[rowKey] = {};
+  if (on) state[rowKey][role] = true;
+  else delete state[rowKey][role];
+  if (!Object.keys(state[rowKey]).length) delete state[rowKey];
   saveState();
+}
+function rowKeyOf(g) {
+  return g.series + '|' + g.version + '|' + g.style + '|' + g.batch;
 }
 
 /* ========== 数据预处理：按系列聚合（供勾选与统计） ========== */
@@ -520,15 +522,6 @@ const seriesData = [];
 }
 const seriesOf = {};
 seriesData.forEach(sd => { seriesOf[sd.series] = sd; });
-/* 平铺所有 [版本, 角色] 勾选项 */
-function allChecks(sd) {
-  const list = [];
-  sd.versions.forEach(v => v.roles.forEach(r => list.push({ ver: v.name, role: r })));
-  return list;
-}
-function totalCheckCount(sd) {
-  return allChecks(sd).filter(x => getChecked(sd.series, x.ver, x.role)).length;
-}
 let sortAsc = true;
 
 // 角色下拉
@@ -539,11 +532,11 @@ DATA.roles.forEach(r => {
 });
 
 /* ========== 渲染 ========== */
-function roleCheckHtml(series, ver, role) {
-  const on = getChecked(series, ver, role);
+function roleCheckHtml(rowKey, role) {
+  const on = getChecked(rowKey, role);
   return `
     <label class="role-check ${on ? 'checked' : ''}" title="${role}">
-      <input type="checkbox" data-series="${series.replace(/"/g, '&quot;')}" data-ver="${ver.replace(/"/g, '&quot;')}" data-role="${role.replace(/"/g, '&quot;')}" ${on ? 'checked' : ''}>
+      <input type="checkbox" data-key="${rowKey.replace(/"/g, '&quot;')}" data-role="${role.replace(/"/g, '&quot;')}" ${on ? 'checked' : ''}>
       <span class="rc-box"></span>
       <span class="rc-name">${roleName(role)}</span>
     </label>`;
@@ -554,8 +547,9 @@ function itemRowHtml(grp) {
   const it = grp.items[0];
   const ver = grp.version || '通常版';
   const sd = seriesOf[grp.series];
+  const rk = rowKeyOf(grp);
   const rowRoles = grp.chars || [];
-  const rowChecked = rowRoles.filter(r => getChecked(it.series, ver, r)).length;
+  const rowChecked = rowRoles.filter(r => getChecked(rk, r)).length;
   const rowTotal = rowRoles.length;
   // 标题：完全按官网日文原名（不翻译）+ 版本后缀（仅该系列存在版本区分时标注；hideVer 商品不标注）
   const verSuffix = sd.versions.length > 1 && !(grp.items[0] && grp.items[0].hideVer) ? '（' + ver + '）' : '';
@@ -580,17 +574,14 @@ function itemRowHtml(grp) {
       <a class="row-link" href="${it.url}" target="_blank">${T('off')}</a>
     </div>
     <div class="row-check">
-      ${rowTotal ? `<div class="rc-head"><div class="rc-label">${T('checkedLabel').replace('{c}', rowChecked).replace('{t}', rowTotal)}</div><label class="rc-all" title="${T('selectAll')}"><input type="checkbox" class="rc-all-box" ${rowChecked === rowTotal ? 'checked' : ''} data-series="${it.series.replace(/"/g, '&quot;')}" data-ver="${ver.replace(/"/g, '&quot;')}"><span>${T('selectAll')}</span></label></div>` : ''}
-      ${rowTotal ? `<div class="rc-grid">${rowRoles.map(r => roleCheckHtml(it.series, ver, r)).join('')}</div>` : `<div class="rc-empty">${T('noRoles')}</div>`}
+      ${rowTotal ? `<div class="rc-head"><div class="rc-label">${T('checkedLabel').replace('{c}', rowChecked).replace('{t}', rowTotal)}</div><label class="rc-all" title="${T('selectAll')}"><input type="checkbox" class="rc-all-box" ${rowChecked === rowTotal ? 'checked' : ''} data-key="${rk.replace(/"/g, '&quot;')}"><span>${T('selectAll')}</span></label></div>` : ''}
+      ${rowTotal ? `<div class="rc-grid">${rowRoles.map(r => roleCheckHtml(rk, r)).join('')}</div>` : `<div class="rc-empty">${T('noRoles')}</div>`}
     </div>
   </div>`;
 }
 
-function render() {
-  const kw = $('#search').value.trim().toLowerCase();
-  const fRole = $('#f-role').value;
-
-  // 按 系列×版本×款式×发售批次 合并（同批仅角色不同的商品合并成一行）
+/* 按 系列×版本×款式×发售批次 合并（同批仅角色不同的商品合并成一行） */
+function buildGroups() {
   const groupMap = {};
   DATA.items.forEach(it => {
     const key = it.series + '|' + (it.version || '') + '|' + it.style + '|' + it.launch;
@@ -616,8 +607,14 @@ function render() {
     if (it.launch > g.maxLaunch) g.maxLaunch = it.launch;
     if (it.sortKey < g.minSort) g.minSort = it.sortKey;
   });
+  return Object.values(groupMap);
+}
 
-  const matched = Object.values(groupMap)
+function render() {
+  const kw = $('#search').value.trim().toLowerCase();
+  const fRole = $('#f-role').value;
+
+  const matched = buildGroups()
     .filter(g => {
       if (fRole && !g.chars.includes(fRole)) return false;
       if (kw) {
@@ -638,9 +635,10 @@ function render() {
 
 function updateStats() {
   let total = 0, checked = 0;
-  seriesData.forEach(sd => {
-    total += allChecks(sd).length;
-    checked += totalCheckCount(sd);
+  buildGroups().forEach(g => {
+    const rk = rowKeyOf(g);
+    total += g.chars.length;
+    checked += g.chars.filter(r => getChecked(rk, r)).length;
   });
   const pct = total ? Math.round(checked / total * 100) : 0;
   $('#st-overall').innerHTML = pct + '<span class="small">%</span>';
@@ -709,18 +707,18 @@ $('#item-list').addEventListener('change', e => {
   if (cb.classList.contains('rc-all-box')) {
     const row = cb.closest('.item-row');
     const on = cb.checked;
+    const rk = cb.dataset.key;
     row.querySelectorAll('.rc-grid input[type="checkbox"]').forEach(rb => {
-      if (rb.checked !== on) setChecked(rb.dataset.series, rb.dataset.ver, rb.dataset.role, on);
+      if (rb.checked !== on) setChecked(rk, rb.dataset.role, on);
     });
     render();
     updateStats();
     return;
   }
   if (!cb.matches('input[type="checkbox"]')) return;
-  const series = cb.dataset.series;
-  const ver = cb.dataset.ver;
+  const rk = cb.dataset.key;
   const role = cb.dataset.role;
-  setChecked(series, ver, role, cb.checked);
+  setChecked(rk, role, cb.checked);
   render();
   updateStats();
 });
@@ -764,7 +762,8 @@ $('#btn-image').addEventListener('click', () => {
   ctx.font = '18px sans-serif';
   ctx.fillText(new Date().toLocaleDateString('zh-CN'), W / 2, 88);
   let total = 0, checked = 0;
-  seriesData.forEach(sd => { const n = allChecks(sd).length; total += n; checked += totalCheckCount(sd); });
+  const groups = buildGroups();
+  groups.forEach(g => { const rk = rowKeyOf(g); total += g.chars.length; checked += g.chars.filter(r => getChecked(rk, r)).length; });
   const pct = Math.round(checked / total * 100);
   ctx.fillStyle = '#2d1b24';
   ctx.font = 'bold 58px sans-serif';
@@ -781,13 +780,15 @@ $('#btn-image').addEventListener('click', () => {
   let y = 285;
   ctx.textAlign = 'left';
   ctx.font = '13px "PingFang SC","Microsoft YaHei"';
-  seriesData.forEach(sd => {
-    const n = allChecks(sd).length;
+  const seriesNames = [...new Set(groups.map(g => g.series))];
+  seriesNames.forEach(series => {
+    const gs = groups.filter(g => g.series === series);
+    let n = 0, c = 0;
+    gs.forEach(g => { const rk = rowKeyOf(g); n += g.chars.length; c += g.chars.filter(r => getChecked(rk, r)).length; });
     if (!n) return;
-    const c = totalCheckCount(sd);
     const w = 300 * c / n;
     ctx.fillStyle = '#6b4d5c';
-    ctx.fillText(sd.series.slice(0, 22) + '  ' + c + '/' + n, 110, y + 9);
+    ctx.fillText(series.slice(0, 22) + '  ' + c + '/' + n, 110, y + 9);
     ctx.fillStyle = '#f5e8ec';
     ctx.beginPath(); ctx.roundRect ? ctx.roundRect(430, y, 300, 12, 6) : ctx.rect(430, y, 300, 12);
     ctx.fill();
